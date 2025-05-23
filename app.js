@@ -19,9 +19,14 @@ form.addEventListener('submit', function (e) {
 
   let isValid = true;
 
-  if (name === '') {
-    showError(nameError, 'Name is required.');
-    isValid = false;
+  const nameRegex = /^[A-Za-z\s]+$/; 
+
+  if (name === ''){
+    showError(nameError, 'Name is required.'); 
+    isValid = false; 
+  } else if (!nameRegex.test(name)){
+    showError(nameError, 'Name can only contain alphabets.'); 
+    isValid = false; 
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
