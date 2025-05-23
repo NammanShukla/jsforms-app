@@ -8,6 +8,14 @@ const nameError = document.getElementById('nameError');
 const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
 
+function debounce(fn, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
 form.addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -19,14 +27,14 @@ form.addEventListener('submit', function (e) {
 
   let isValid = true;
 
-  const nameRegex = /^[A-Za-z\s]+$/; 
+  const nameRegex = /^[A-Za-z\s]+$/;
 
-  if (name === ''){
-    showError(nameError, 'Name is required.'); 
-    isValid = false; 
-  } else if (!nameRegex.test(name)){
-    showError(nameError, 'Name can only contain alphabets.'); 
-    isValid = false; 
+  if (name === '') {
+    showError(nameError, 'Name is required.');
+    isValid = false;
+  } else if (!nameRegex.test(name)) {
+    showError(nameError, 'Name can only contain alphabets.');
+    isValid = false;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,30 +71,56 @@ form.addEventListener('submit', function (e) {
   }
 });
 
-nameInput.addEventListener('input', () => {
-  if (nameInput.value.trim() !== '') {
+const validateName = debounce(() => {
+  const name = nameInput.value.trim();
+  const nameRegex = /^[A-Za-z\s]+$/;
+
+  if (name === '') {
+    showError(nameError, 'Name is required.');
+  } else if (!nameRegex.test(name)) {
+    showError(nameError, 'Name can only contain alphabets.');
+  } else {
     hideError(nameError);
   }
-});
+}, 300);
 
-emailInput.addEventListener('input', () => {
+const validateEmail = debounce(() => {
+  const email = emailInput.value.trim();
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailRegex.test(emailInput.value.trim())) {
+
+  if (email === '') {
+    showError(emailError, 'Email is required.');
+  } else if (!emailRegex.test(email)) {
+    showError(emailError, 'Enter a valid email.');
+  } else {
     hideError(emailError);
   }
-});
+}, 300);
 
-passwordInput.addEventListener('input', () => {
-  const val = passwordInput.value.trim();
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(val);
-  const hasNumber = /\d/.test(val);
-  const notSameAsName = val.toLowerCase() !== nameInput.value.trim().toLowerCase();
+const validatePassword = debounce(() => {
+  const password = passwordInput.value.trim();
+  const name = nameInput.value.trim();
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const notSameAsName = password.toLowerCase() !== name.toLowerCase();
 
-  if (val.length >= 6 && hasSpecialChar && hasNumber && notSameAsName) {
+  if (password.length < 6) {
+    showError(passwordError, 'Password must be at least 6 characters.');
+  } else if (!hasSpecialChar) {
+    showError(passwordError, 'Password must contain a special character.');
+  } else if (!hasNumber) {
+    showError(passwordError, 'Password must include a number.');
+  } else if (!notSameAsName) {
+    showError(passwordError, 'Password should not be the same as the name.');
+  } else {
     hideError(passwordError);
   }
-});
+}, 300);
 
+
+nameInput.addEventListener('input', validateName);
+emailInput.addEventListener('input', validateEmail);
+passwordInput.addEventListener('input', validatePassword);
 
 function showError(element, message) {
   element.textContent = message;
